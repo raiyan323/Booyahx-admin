@@ -1,41 +1,40 @@
-import { router, useFocusEffect, useRouter } from "expo-router";
-
+import { useFocusEffect, useRouter } from "expo-router";
 import {
-    CalendarDays,
-    Clock,
-    Edit3,
-    MapPin,
-    Plus,
-    Shield,
-    Trash2,
-    Trophy,
-    Users,
-    Wifi,
-    X,
+  CalendarDays,
+  Clock,
+  Edit3,
+  MapPin,
+  Plus,
+  Shield,
+  Trash2,
+  Trophy,
+  Users,
+  Wifi,
+  X,
 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
-    ADMIN_TEAM_ID,
-    DATABASE_ID,
-    ID,
-    Permission,
-    Query,
-    Role,
-    TABLES,
-    tablesDB,
+  ADMIN_TEAM_ID,
+  DATABASE_ID,
+  ID,
+  Permission,
+  Query,
+  Role,
+  TABLES,
+  tablesDB,
 } from "../../lib/appwrite";
 
 import type { Tournament } from "../../types";
@@ -137,18 +136,24 @@ function OptionSelector({
   );
 }
 
+// Tournament Card
 function TournamentCard({
   tournament,
   onEdit,
   onDelete,
+  onManageRoom,
+  onManageResults,
 }: {
   tournament: Tournament;
   onEdit: (item: Tournament) => void;
   onDelete: (item: Tournament) => void;
+  onManageRoom: (id: string) => void;
+  onManageResults: (id: string) => void;
 }) {
   return (
     <View className="mb-4 overflow-hidden rounded-2xl border border-[#332A4B] bg-[#1D1833]">
       <View className="p-4">
+        {/* Title and Status */}
         <View className="flex-row items-start justify-between">
           <View className="mr-3 flex-1">
             <Text className="text-base font-extrabold text-white">
@@ -165,6 +170,7 @@ function TournamentCard({
 
         <View className="my-4 h-px bg-[#332A4B]" />
 
+        {/* Tournament Information */}
         <View className="flex-row flex-wrap gap-x-5 gap-y-3">
           <View className="flex-row items-center gap-2">
             <Trophy size={14} color={PURPLE} />
@@ -207,6 +213,7 @@ function TournamentCard({
 
         <View className="my-4 h-px bg-[#332A4B]" />
 
+        {/* Edit and Delete */}
         <View className="flex-row gap-3">
           <Pressable
             onPress={() => onEdit(tournament)}
@@ -223,14 +230,26 @@ function TournamentCard({
             <Trash2 size={15} color="#F87171" />
             <Text className="text-xs font-bold text-red-400">Delete</Text>
           </Pressable>
+        </View>
+
+        {/* Manage Room and Results */}
+        <View className="mt-3 flex-row gap-3">
           <Pressable
-            onPress={() => router.push(`/room/${tournament.$id}`)}
-            className="mt-3 flex-row items-center justify-center gap-2 rounded-xl border border-[#332A4B] bg-[#A78BFA]/10 p-3 active:opacity-70"
+            onPress={() => onManageRoom(tournament.$id)}
+            className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-[#332A4B] bg-[#A78BFA]/10 p-3 active:opacity-70"
           >
-            <Wifi size={15} color="#A78BFA" />
+            <Wifi size={15} color={PURPLE} />
             <Text className="text-xs font-bold text-[#C4B5FD]">
               Manage Room
             </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => onManageResults(tournament.$id)}
+            className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-[#332A4B] bg-[#A78BFA]/10 p-3 active:opacity-70"
+          >
+            <Trophy size={15} color={PURPLE} />
+            <Text className="text-xs font-bold text-[#C4B5FD]">Results</Text>
           </Pressable>
         </View>
       </View>
@@ -239,8 +258,9 @@ function TournamentCard({
 }
 
 export default function TournamentsScreen() {
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const router = useRouter();
+
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -509,9 +529,19 @@ export default function TournamentsScreen() {
     );
   }
 
+  // Refresh
   function handleRefresh() {
     setRefreshing(true);
     loadTournaments();
+  }
+
+  // Navigation
+  function handleManageRoom(id: string) {
+    router.push(`/room/${id}`);
+  }
+
+  function handleManageResults(id: string) {
+    router.push(`/results/${id}`);
   }
 
   if (loading) {
@@ -574,6 +604,14 @@ export default function TournamentsScreen() {
         >
           <Plus size={19} color="#FFFFFF" />
           <Text className="font-bold text-white">Create Tournament</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => router.push(`/results/${tournaments.$id}`)}
+          className="flex-1 flex-row items-center justify-center rounded-xl bg-[#A78BFA] p-3"
+        >
+          <Trophy size={18} color="#100D20" />
+          <Text className="ml-2 font-bold text-[#100D20]">Add Result</Text>
         </Pressable>
 
         {/* Statistics */}
@@ -642,6 +680,8 @@ export default function TournamentsScreen() {
                 tournament={item}
                 onEdit={openEditModal}
                 onDelete={handleDelete}
+                onManageRoom={handleManageRoom}
+                onManageResults={handleManageResults}
               />
             ))
           : null}
